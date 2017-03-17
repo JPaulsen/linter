@@ -19,9 +19,7 @@ class DartTypeUtilities {
           extendsClass(type.superclass, className, library));
 
   static Element getCanonicalElement(Element element) =>
-      element is PropertyAccessorElement
-          ? element.variable
-          : element;
+      element is PropertyAccessorElement ? element.variable : element;
 
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
@@ -61,15 +59,26 @@ class DartTypeUtilities {
   /// predicate returns true, if not provided, all is included.
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate excludeCriteria}) {
-    LinkedHashSet<AstNode> nodes = new LinkedHashSet();
-    node.childEntities
-        .where((c) =>
-            c is AstNode && (excludeCriteria == null || !excludeCriteria(c)))
-        .forEach((c) {
-      nodes
-        ..add(c)
-        ..addAll(traverseNodesInDFS(c));
-    });
+    Set<AstNode> nodes = new LinkedHashSet();
+    final stack = new DoubleLinkedQueue<AstNode>();
+    stack.add(node);
+    while (stack.isNotEmpty) {
+      final crtNode = stack.removeLast();
+      if (excludeCriteria == null || !excludeCriteria(crtNode)) {
+        if (crtNode != node) {
+          nodes.add(crtNode);
+        }
+        final localStack = new DoubleLinkedQueue<AstNode>();
+        for (final child in crtNode.childEntities) {
+          if (child is AstNode) {
+            localStack.add(child);
+          }
+        }
+        while (localStack.isNotEmpty) {
+          stack.add(localStack.removeLast());
+        }
+      }
+    }
     return nodes;
   }
 
