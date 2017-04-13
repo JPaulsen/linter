@@ -7,6 +7,7 @@ library linter.src.util.dart_type_utilities;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -21,16 +22,10 @@ class DartTypeUtilities {
   static Element getCanonicalElement(Element element) =>
       element is PropertyAccessorElement ? element.variable : element;
 
-  static Element getCanonicalElementFromIdentifier(AstNode rawNode) {
-    if (rawNode is Expression) {
-      final node = rawNode.unParenthesized;
-      if (node is Identifier) {
-        return getCanonicalElement(node.bestElement);
-      } else if (node is PropertyAccess) {
-        return getCanonicalElement(node.propertyName.bestElement);
-      }
-    }
-    return null;
+  static Element getCanonicalElementFromIdentifier(AstNode node) {
+    final visitor = new _CanonicalElementFromIdentifierVisitor();
+    node?.accept(visitor);
+    return visitor.canonicalElement;
   }
 
   static Statement getLastStatementInBlock(Block node) {
@@ -171,5 +166,30 @@ class InterfaceTypeDefinition {
     return other is InterfaceTypeDefinition &&
         this.name == other.name &&
         this.library == other.library;
+  }
+}
+
+class _CanonicalElementFromIdentifierVisitor extends SimpleAstVisitor {
+  Element canonicalElement;
+
+  @override
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    node.unParenthesized.accept(this);
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    canonicalElement = DartTypeUtilities.getCanonicalElement(node.bestElement);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    canonicalElement =
+        DartTypeUtilities.getCanonicalElement(node.propertyName.bestElement);
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    canonicalElement = DartTypeUtilities.getCanonicalElement(node.bestElement);
   }
 }

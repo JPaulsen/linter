@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:linter/src/util/boolean_expression_utilities.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 void _addNodeComparisons(Expression node, HashSet<Expression> comparisons) {
   if (_isComparison(node)) {
@@ -126,14 +127,17 @@ class TestedExpressions {
     LinkedHashSet<ContradictoryComparisons> contradictions =
         new LinkedHashSet.identity();
 
-    if (testingExpression is SimpleIdentifier) {
-      SimpleIdentifier identifier = testingExpression;
-      bool sameIdentifier(n) =>
-          n is SimpleIdentifier && identifier.bestElement == n.bestElement;
+    final testingExpressionElement =
+        DartTypeUtilities.getCanonicalElementFromIdentifier(testingExpression);
+
+    if (testingExpressionElement != null) {
+      bool sameIdentifier(AstNode node) =>
+          testingExpressionElement ==
+          DartTypeUtilities.getCanonicalElementFromIdentifier(node);
       if (negations.any(sameIdentifier)) {
         SimpleIdentifier otherIdentifier = negations.firstWhere(sameIdentifier);
-        contradictions
-            .add(new ContradictoryComparisons(otherIdentifier, identifier));
+        contradictions.add(
+            new ContradictoryComparisons(otherIdentifier, testingExpression));
       }
     }
 

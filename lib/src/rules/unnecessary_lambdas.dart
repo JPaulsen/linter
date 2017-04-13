@@ -127,24 +127,24 @@ class _Visitor extends SimpleAstVisitor {
       restOfElements = _extractElementsOfSimpleIdentifiers(node.function);
     } else if (node is MethodInvocation) {
       var nodesInTarget = <AstNode>[];
-      if (node.target != null) {
-        nodesInTarget = DartTypeUtilities.traverseNodesInDFS(node.target);
-        restOfElements = node.target is SimpleIdentifier
-            ? [(node.target as SimpleIdentifier).bestElement]
-            : _extractElementsOfSimpleIdentifiers(node.target);
+      final target = node.target;
+      if (target != null) {
+        nodesInTarget = DartTypeUtilities.traverseNodesInDFS(target);
+        restOfElements = target is SimpleIdentifier
+            ? [target.bestElement]
+            : _extractElementsOfSimpleIdentifiers(target);
       }
       if (_isNonFinalField(node) ||
-          _isNonFinalField(node.target) ||
-          _isInvocationExpression(node.target) ||
+          _isNonFinalField(target) ||
+          _isInvocationExpression(target) ||
           _containsNullAwareInvocationInChain(node) ||
           nodesInTarget.any(_isNonFinalField) ||
           nodesInTarget.any(_isInvocationExpression)) {
         return;
       }
     }
-    if (restOfElements.any(parameters.contains)) {
-      return;
+    if (restOfElements.toSet().intersection(parameters.toSet()).isEmpty) {
+      rule.reportLint(nodeToLint);
     }
-    rule.reportLint(nodeToLint);
   }
 }

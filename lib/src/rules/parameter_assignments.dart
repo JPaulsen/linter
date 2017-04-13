@@ -89,17 +89,17 @@ bool _isDefaultFormalParameterWithoutDefaultValueReassigned(
 
 bool _isFormalParameterReassigned(
         FormalParameter parameter, AssignmentExpression assignment) =>
-    assignment.leftHandSide is SimpleIdentifier &&
-    (assignment.leftHandSide as SimpleIdentifier).staticElement ==
-        parameter.element;
+    DartTypeUtilities
+        .getCanonicalElementFromIdentifier(assignment.leftHandSide) ==
+    parameter.element;
 
 bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) {
   return n is PrefixExpression &&
-          n.operand is SimpleIdentifier &&
-          (n.operand as SimpleIdentifier).staticElement == parameter.element ||
+          DartTypeUtilities.getCanonicalElementFromIdentifier(n.operand) ==
+              parameter.element ||
       n is PostfixExpression &&
-          n.operand is SimpleIdentifier &&
-          (n.operand as SimpleIdentifier).staticElement == parameter.element;
+          DartTypeUtilities.getCanonicalElementFromIdentifier(n.operand) ==
+              parameter.element;
 }
 
 class ParameterAssignments extends LintRule {

@@ -88,8 +88,7 @@ Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
   Iterable<MethodInvocation> prefixedIdentifiers =
       containerNodes.where((n) => n is MethodInvocation);
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
-      .where((e) => e is SimpleIdentifier)
-      .map((e) => (e as SimpleIdentifier).bestElement)
+      .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
       .contains(variable.name.bestElement));
 }
 
@@ -144,13 +143,8 @@ bool _isInvocationThroughCascadeExpression(
   }
 
   final identifier = invocation.realTarget;
-  if (identifier is SimpleIdentifier) {
-    final element = identifier.bestElement;
-    if (element is PropertyAccessorElement) {
-      return element.variable == variable.element;
-    }
-  }
-  return false;
+  return DartTypeUtilities.getCanonicalElementFromIdentifier(identifier) ==
+      variable.element;
 }
 
 bool _isSimpleIdentifierElementEqualToVariable(

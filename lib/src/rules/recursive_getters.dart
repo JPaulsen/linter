@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Property getter recursivlely returns itself.';
 
@@ -51,6 +50,19 @@ class RecursiveGetters extends LintRule {
   AstVisitor getVisitor() => _visitor;
 }
 
+class VerifyElementVisitor extends RecursiveAstVisitor {
+  final ExecutableElement element;
+  final LintRule rule;
+
+  VerifyElementVisitor(this.element, this.rule);
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.bestElement == element) {
+      rule.reportLint(node);
+    }
+  }
+}
+
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
   _Visitor(this.rule);
@@ -78,12 +90,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   void _verifyElement(AstNode node, ExecutableElement element) {
-    final nodes = DartTypeUtilities.traverseNodesInDFS(node);
-
-    nodes.where((n) => n is SimpleIdentifier).forEach((n) {
-      if (element == (n as SimpleIdentifier).staticElement) {
-        rule.reportLint(n);
-      }
-    });
+    final visitor = new VerifyElementVisitor(element, rule);
+    node.accept(visitor);
   }
 }

@@ -109,13 +109,15 @@ class _Visitor extends SimpleAstVisitor {
     bool isConstructorFieldInitializerToLint(
         ConstructorFieldInitializer constructorFieldInitializer) {
       final expression = constructorFieldInitializer.expression;
+      final element =
+          DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
       return !(constructorFieldInitializer.fieldName.bestElement?.isPrivate ??
               true) &&
-          expression is SimpleIdentifier &&
-          parameters.contains(expression.bestElement) &&
-          (!parametersUsedMoreThanOnce.contains(expression.bestElement) ||
+          element != null &&
+          parameters.contains(element) &&
+          (!parametersUsedMoreThanOnce.contains(element) ||
               constructorFieldInitializer.fieldName.bestElement?.name ==
-                  expression.bestElement.name);
+                  element.name);
     }
 
     void processElement(Element element) {
