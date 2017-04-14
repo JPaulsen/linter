@@ -171,7 +171,7 @@ class DartTypeUtilities {
   /// predicate returns true, if not provided, all is included.
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate excludeCriteria}) {
-    LinkedHashSet<AstNode> nodes = new LinkedHashSet();
+    final nodes = new LinkedHashSet<AstNode>();
     void recursiveCall(node) {
       if (node is AstNode &&
           (excludeCriteria == null || !excludeCriteria(node))) {
@@ -198,8 +198,8 @@ class DartTypeUtilities {
         rightType.isMoreSpecificThan(leftType)) {
       return false;
     }
-    Element leftElement = leftType.element;
-    Element rightElement = rightType.element;
+    final leftElement = leftType.element;
+    final rightElement = rightType.element;
     if (leftElement is ClassElement && rightElement is ClassElement) {
       return leftElement.supertype.isObject ||
           leftElement.supertype != rightElement.supertype;
@@ -215,9 +215,7 @@ class InterfaceTypeDefinition {
   InterfaceTypeDefinition(this.name, this.library);
 
   @override
-  int get hashCode {
-    return name.hashCode ^ library.hashCode;
-  }
+  int get hashCode => name.hashCode ^ library.hashCode;
 
   @override
   bool operator ==(Object other) {
@@ -225,7 +223,7 @@ class InterfaceTypeDefinition {
       return true;
     }
     return other is InterfaceTypeDefinition &&
-        this.name == other.name &&
-        this.library == other.library;
+        name == other.name &&
+        library == other.library;
   }
 }
